@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void print_hello();
+int bmi270_init_hc(I2C_HandleTypeDef *hi2c);
+int bmi270_write_byte(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t byte);
+
 
 #endif

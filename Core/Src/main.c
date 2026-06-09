@@ -94,6 +94,22 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  printf("-----Starting new code execution -----\r\n");
+  bmi270_init_hc(&hi2c1);
+
+  // i2c bus scan
+  uint8_t ret = 0;
+  HAL_Delay(1000);
+  printf("starting i2c scan, will print device address if found on i2c bus:\r\n");
+  for (uint8_t i = 0; i < 128; i++) {
+		  ret = HAL_I2C_IsDeviceReady(&hi2c1, (uint16_t)(i<<1), 3, 5);
+		  if (ret != HAL_OK) {
+			  printf("- ");
+		  } else if (ret == HAL_OK) {
+			  printf("0x%X ", i);
+		  }
+  }
+  printf("\r\n");
 
   /* USER CODE END 2 */
 
@@ -102,7 +118,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  print_hello();
+
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
