@@ -29,13 +29,14 @@ static int i2c_wait(I2C_HandleTypeDef *hi2c) {
 
 // hardcoded bmi270 init
 int bmi270_init_hc(I2C_HandleTypeDef *hi2c) {
-	uint8_t byte_data = 0x00;
+	uint8_t databuf[8];
+	databuf[0] = 0x00;
 
-	bmi270_write_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), byte_data);
+	bmi270_write_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), databuf[0]);
 
-	bmi270_read_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), &byte_data);
+	bmi270_read_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), databuf);
 
-	printf("Ret val: %x\r\n", byte_data);
+	printf("Ret val: %x\r\n", databuf[0]);
 	return 0;
 }
 
@@ -60,6 +61,31 @@ int bmi270_read_byte(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *byte
 	}
 	return 0;
 }
+
+// write to an address of the bmi270 over I2C. This supports writing more than 1 byte of data.
+int bmi270_write(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pdata, uint16_t size) {
+	i2c_err = 0;
+	i2c_done = 0;
+	HAL_I2C_Master_Transmit_IT(hi2c, DevAddress, pdata, size);
+	if (i2c_wait(hi2c) == -1) {
+		printf("I2C aborted during bmi270_write(). Possible error: %ld \r\n", i2c_err);
+		return -1;
+	}
+	return 0;
+}
+
+// read to an address of the bmi270 over I2C. This supports reading more than 1 byte of data.
+int bmi270_read(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pdata, uint16_t size) {
+	i2c_err = 0;
+	i2c_done = 0;
+	HAL_I2C_Master_Receive_IT(hi2c, DevAddress, pdata, size);
+	if (i2c_wait(hi2c) == -1) {
+		printf("I2C aborted during bmi270_read(). Possible error: %ld \r\n", i2c_err);
+		return -1;
+	}
+	return 0;
+}
+
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef * hi2c) {
 	i2c_done = 1;
