@@ -33,22 +33,29 @@ int bmi270_init_hc(I2C_HandleTypeDef *hi2c) {
 
 	bmi270_write_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), byte_data);
 
-	i2c_err = 0;
-	i2c_done = 0;
-	HAL_I2C_Master_Receive_IT(hi2c, (BMI270_I2C_DEFAULT_ID << 1), &byte_data, 1);
-	if (i2c_wait(hi2c) == -1) {
-		return -1;
-	}
+	bmi270_read_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), &byte_data);
 
 	printf("Ret val: %x\r\n", byte_data);
 	return 0;
 }
+
 int bmi270_write_byte(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t byte) {
 	i2c_err = 0;
 	i2c_done = 0;
 	HAL_I2C_Master_Transmit_IT(hi2c, DevAddress, &byte, 1);
 	if (i2c_wait(hi2c) == -1) {
 		printf("I2C aborted during bmi270_write_byte(). Possible error: %ld \r\n", i2c_err);
+		return -1;
+	}
+	return 0;
+}
+
+int bmi270_read_byte(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *byte) {
+	i2c_err = 0;
+	i2c_done = 0;
+	HAL_I2C_Master_Receive_IT(hi2c, DevAddress, byte, 1);
+	if (i2c_wait(hi2c) == -1) {
+		printf("I2C aborted during bmi270_read_byte(). Possible error: %ld \r\n", i2c_err);
 		return -1;
 	}
 	return 0;
