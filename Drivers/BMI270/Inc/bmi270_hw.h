@@ -3,7 +3,14 @@
 
 
 #define BMI270_CHIP_ID 0x24
-#define BMI270_I2C_DEFAULT_ID 0x68
+#define BMI270_I2C_DEFAULT_ADDR 0x68
 
+// register bases
+#define BMI270_REG_CHIP_ID 0x00
+#define BMI270_REG_INTERNAL_STATUS 0x21
+
+#define BMI270_REG_INIT_CTRL 0x59
+#define BMI270_REG_INIT_DATA 0x5E
+#define BMI270_REG_PWR_CONF 0x7C
 
 #endif

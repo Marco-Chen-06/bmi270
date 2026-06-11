@@ -109,7 +109,7 @@ int main(void)
   for (uint8_t i = 0; i < 128; i++) {
 		  ret = HAL_I2C_IsDeviceReady(&hi2c1, (uint16_t)(i<<1), 3, 5);
 		  if (ret != HAL_OK) {
-			  printf("- ");
+			  printf("- ", i);
 		  } else if (ret == HAL_OK) {
 			  printf("0x%X ", i);
 		  }
