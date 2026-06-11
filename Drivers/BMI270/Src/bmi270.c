@@ -33,10 +33,12 @@ int bmi270_init_hc(I2C_HandleTypeDef *hi2c) {
 	databuf[0] = 0x00;
 
 	bmi270_write_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), databuf[0]);
-
 	bmi270_read_byte(hi2c, (BMI270_I2C_DEFAULT_ID << 1), databuf);
 
-	printf("Ret val: %x\r\n", databuf[0]);
+	if (databuf[0] != BMI270_CHIP_ID) {
+		return -1;
+	}
+
 	return 0;
 }
 

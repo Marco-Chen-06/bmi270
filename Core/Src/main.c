@@ -95,7 +95,12 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   printf("-----Starting new code execution -----\r\n");
-  bmi270_init_hc(&hi2c1);
+
+  if (bmi270_init_hc(&hi2c1) == -1) {
+	  printf("Error, bmi270 failed to initialize");
+	  return -1;
+  }
+  printf("bmi270 successfully initialized\r\n");
 
   // i2c bus scan
   uint8_t ret = 0;
@@ -118,7 +123,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 	HAL_Delay(500);
     /* USER CODE BEGIN 3 */
