@@ -54,7 +54,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-static void i2c_bus_scan();
+//static void i2c_bus_scan();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -95,18 +95,19 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	printf("-----starting new code execution-----\r\n");
 
-	if (bmi270_init_hc(&hi2c1) == -1) {
+	if (bmi270_init(&hi2c1) == -1) {
 		printf("Error, bmi270 failed to initialize\r\n");
 		return -1;
 	}
 	printf("BMI270 init successful \r\n");
 
-	i2c_bus_scan();
+	bmi270_init_normal(&hi2c1);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		bmi270_get_motion_data(&hi2c1, NULL);
 		/* USER CODE END WHILE */
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		HAL_Delay(500);

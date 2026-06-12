@@ -718,7 +718,7 @@ static int i2c_wait(I2C_HandleTypeDef *hi2c) {
 }
 
 // hardcoded bmi270 init
-int bmi270_init_hc(I2C_HandleTypeDef *hi2c) {
+int bmi270_init(I2C_HandleTypeDef *hi2c) {
 
 	// soft reset the bmi270 before initialization
 	bmi270_write_byte(hi2c, BMI270_REG_CMD, BMI270_CMD_SOFTRESET);
@@ -761,7 +761,7 @@ int bmi270_init_hc(I2C_HandleTypeDef *hi2c) {
 
 	// complete config load INIT_CTRL = 0x01
 	bmi270_write_byte(hi2c, BMI270_REG_INIT_CTRL, 0x01);
-	HAL_Delay(50);
+	HAL_Delay(50); // this delay should be atleast 20 ms
 
 	uint8_t init_status = 0;
 	bmi270_read_byte(hi2c, BMI270_REG_INTERNAL_STATUS, &init_status);
@@ -773,13 +773,42 @@ int bmi270_init_hc(I2C_HandleTypeDef *hi2c) {
 	return 0;
 }
 
+// initialize bmi270 for normal mode. This follows section 3.3 of the bmi270 datasheet
+int bmi270_init_normal(I2C_HandleTypeDef *hi2c) {
+	// enable acceleration gyro and temperature sensor data. Disable auxilirary sensor.
+	bmi270_write_byte(hi2c, BMI270_REG_PWR_CTRL, 0x0E);
+
+	// enable acc_filter_perf bit, set gyr_bwp to normal mode, set gyr_odr to 200 Hz
+	bmi270_write_byte(hi2c, BMI270_REG_ACC_CONF, 0xA8);
+
+	// enable gyr_filter_pref bit, set gyr_bwp to normal mode, set gyr_odr to 200 Hz
+	bmi270_write_byte(hi2c, BMI270_REG_GYR_CONF, 0xA9);
+
+	// disable the adv_power_save bit, leave the fifo_self_wakeup enabled
+	bmi270_write_byte(hi2c, BMI270_REG_PWR_CONF, 0x02);
+
+	return 0;
+}
+
+// get motion data
+int bmi270_get_motion_data(I2C_HandleTypeDef *hi2c, bmi270_data_t *data) {
+	uint8_t buf[12];
+	bmi270_read(hi2c, BMI270_REG_DATA_8, buf, 12);
+	for (int i = 0; i < 12; i++) {
+		printf("%d ", buf[i]);
+	}
+	printf("\r\n");
+
+	return 0;
+}
+
 // write to an address of the bmi270 over I2C. Size represents the size of the data to write, not including the memaddress.
 int bmi270_write(I2C_HandleTypeDef *hi2c, uint16_t memAddr,
 		const uint8_t *pData, uint16_t size) {
 	i2c_err = 0;
 	i2c_done = 0;
 	HAL_I2C_Mem_Write_IT(hi2c, BMI270_I2C_DEFAULT_ADDR << 1, memAddr,
-			I2C_MEMADD_SIZE_8BIT, (uint8_t*) pData, size);
+	I2C_MEMADD_SIZE_8BIT, (uint8_t*) pData, size);
 	if (i2c_wait(hi2c) == -1) {
 		printf(
 				"I2C aborted during bmi270_write(). MemAddr: %x. Errcode: %ld \r\n",
@@ -795,7 +824,7 @@ int bmi270_read(I2C_HandleTypeDef *hi2c, uint16_t memAddr, uint8_t *pData,
 	i2c_err = 0;
 	i2c_done = 0;
 	HAL_I2C_Mem_Read_IT(hi2c, BMI270_I2C_DEFAULT_ADDR << 1, memAddr,
-			I2C_MEMADD_SIZE_8BIT, pData, size);
+	I2C_MEMADD_SIZE_8BIT, pData, size);
 	if (i2c_wait(hi2c) == -1) {
 		printf(
 				"I2C aborted during bmi270_read(). MemAddr: %x. Errcode: %ld \r\n",

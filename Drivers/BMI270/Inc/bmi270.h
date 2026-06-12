@@ -6,7 +6,25 @@
 #include <stdint.h>
 #include <stddef.h>
 
-int bmi270_init_hc(I2C_HandleTypeDef *hi2c);
+typedef struct {
+	int16_t acc_x;
+	int16_t acc_y;
+	int16_t acc_z;
+	int16_t gyr_x;
+	int16_t gyr_y;
+	int16_t gyr_z;
+} bmi270_data_t;
+
+// perform initialization sequence
+int bmi270_init(I2C_HandleTypeDef *hi2c);
+
+// initialize bmi270 for normal mode
+int bmi270_init_normal(I2C_HandleTypeDef *hi2c);
+
+// get motion data
+int bmi270_get_motion_data(I2C_HandleTypeDef *hi2c, bmi270_data_t *data);
+
+// I2C transaction functions
 int bmi270_write(I2C_HandleTypeDef *hi2c, uint16_t memAddr,
 		const uint8_t *pData, uint16_t size);
 int bmi270_read(I2C_HandleTypeDef *hi2c, uint16_t memAddr, uint8_t *pData,
