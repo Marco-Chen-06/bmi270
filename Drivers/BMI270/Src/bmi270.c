@@ -778,7 +778,7 @@ int bmi270_init_normal(I2C_HandleTypeDef *hi2c) {
 	// enable acceleration gyro and temperature sensor data. Disable auxilirary sensor.
 	bmi270_write_byte(hi2c, BMI270_REG_PWR_CTRL, 0x0E);
 
-	// enable acc_filter_perf bit, set gyr_bwp to normal mode, set gyr_odr to 200 Hz
+	// enable acc_filter_perf bit, set gyr_bwp to normal mode, set acc_odr to 100 Hz
 	bmi270_write_byte(hi2c, BMI270_REG_ACC_CONF, 0xA8);
 
 	// enable gyr_filter_pref bit, set gyr_bwp to normal mode, set gyr_odr to 200 Hz
@@ -793,11 +793,29 @@ int bmi270_init_normal(I2C_HandleTypeDef *hi2c) {
 // get motion data
 int bmi270_get_motion_data(I2C_HandleTypeDef *hi2c, bmi270_data_t *data) {
 	uint8_t buf[12];
-	bmi270_read(hi2c, BMI270_REG_DATA_8, buf, 12);
-	for (int i = 0; i < 12; i++) {
-		printf("%d ", buf[i]);
+	uint8_t gyr_factor_zx = 0;
+	if (bmi270_read(hi2c, BMI270_REG_DATA_8, buf, 12) != 0) {
+		return -1;
 	}
-	printf("\r\n");
+	if (bmi270_read_byte(hi2c, BMI270_REG_FEATURES_GYR_POSTPROC, &gyr_factor_zx)
+			!= 0) {
+		return -1;
+	}
+	data->acc_x = (int16_t) (((uint16_t) buf[1] << 8) | buf[0]);
+	data->acc_y = (int16_t) (((uint16_t) buf[3] << 8) | buf[2]);
+	data->acc_z = (int16_t) (((uint16_t) buf[5] << 8) | buf[4]);
+
+	// sign-extend gyr_factor_zx so it is a 7-bit twos-complement encoded signed value
+	if (gyr_factor_zx & 0x40) {
+		gyr_factor_zx = gyr_factor_zx | 0x80;
+	}
+
+	// gyroscope post processing (sorry about the formatting)
+	data->gyr_x = (int16_t) ((int16_t) (((uint16_t) buf[7] << 8) | buf[6])
+			- ((int8_t) gyr_factor_zx)
+					* (int16_t) (((uint16_t) buf[11] << 8) | buf[10]) / (512));
+	data->gyr_y = (int16_t) (((uint16_t)buf[9] << 8) | buf[8]);
+	data->gyr_z = (int16_t) (((uint16_t)buf[11] << 8) | buf[10]);
 
 	return 0;
 }

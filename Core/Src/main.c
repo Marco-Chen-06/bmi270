@@ -54,7 +54,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-//static void i2c_bus_scan();
+static void print_motion_data(bmi270_data_t data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -102,15 +102,18 @@ int main(void) {
 	printf("BMI270 init successful \r\n");
 
 	bmi270_init_normal(&hi2c1);
+
+	bmi270_data_t data = {0};
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		bmi270_get_motion_data(&hi2c1, NULL);
+		bmi270_get_motion_data(&hi2c1, &data);
+		print_motion_data(data);
 		/* USER CODE END WHILE */
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		HAL_Delay(500);
+		HAL_Delay(50);
 		/* USER CODE BEGIN 3 */
 	}
 	/* USER CODE END 3 */
@@ -285,18 +288,10 @@ int __io_putchar(int ch) {
 	return ch;
 }
 
-static void i2c_bus_scan() {
-	int ret = 0;
-	printf("-----starting i2c scan-----\r\n");
-	for (uint8_t i = 0; i < 128; i++) {
-		ret = HAL_I2C_IsDeviceReady(&hi2c1, (uint16_t) (i << 1), 3, 5);
-		if (ret != HAL_OK) {
-			printf("- ");
-		} else if (ret == HAL_OK) {
-			printf("0x%X ", i);
-		}
-	}
-	printf("\r\n");
+static void print_motion_data(bmi270_data_t data) {
+	printf("acc_x: %d acc_y: %d acc_z: %d ", data.acc_x, data.acc_y, data.acc_z);
+	printf("gyr_x: %d gyr_y: %d gyr_z %d \r\n", data.gyr_x, data.gyr_y, data.gyr_z);
+
 }
 /* USER CODE END 4 */
 
