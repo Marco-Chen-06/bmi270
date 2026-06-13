@@ -55,6 +55,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 static void print_motion_data(bmi270_data_t data);
+static void print_motion_data_csv(bmi270_data_t data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -110,7 +111,7 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		bmi270_get_motion_data(&hi2c1, &data);
-		print_motion_data(data);
+		print_motion_data_csv(data);
 		/* USER CODE END WHILE */
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		HAL_Delay(50);
@@ -289,9 +290,12 @@ int __io_putchar(int ch) {
 }
 
 static void print_motion_data(bmi270_data_t data) {
-	printf("acc_x: %d acc_y: %d acc_z: %d ", data.acc_x, data.acc_y, data.acc_z);
+	printf("acc_x: %d acc_y: %d acc_z: %d, ", data.acc_x, data.acc_y, data.acc_z);
 	printf("gyr_x: %d gyr_y: %d gyr_z %d \r\n", data.gyr_x, data.gyr_y, data.gyr_z);
+}
 
+static void print_motion_data_csv(bmi270_data_t data) {
+	printf("%d,%d,%d,%d,%d,%d\r\n", data.acc_x, data.acc_y, data.acc_z, data.gyr_x, data.gyr_y, data.gyr_z);
 }
 /* USER CODE END 4 */
 
