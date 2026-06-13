@@ -774,6 +774,8 @@ int bmi270_init(I2C_HandleTypeDef *hi2c) {
 }
 
 // initialize bmi270 for normal mode. This follows section 3.3 of the bmi270 datasheet
+// Note: This sets acceleration data to 100Hz sampling and gyroscope to 200 Hz
+// (odr means output data rate)
 int bmi270_init_normal(I2C_HandleTypeDef *hi2c) {
 	// enable acceleration gyro and temperature sensor data. Disable auxilirary sensor.
 	bmi270_write_byte(hi2c, BMI270_REG_PWR_CTRL, 0x0E);

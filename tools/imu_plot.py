@@ -20,7 +20,7 @@ ser.reset_input_buffer()
 
 channels = []
 values = []
-for i in range (6):
+for i in range (7):
     channels.append(deque([0] * WINDOW_WIDTH, maxlen=WINDOW_WIDTH))
 
 def update(frame):
@@ -28,43 +28,44 @@ def update(frame):
         raw_data = ser.readline()
         try:
             decoded_data = raw_data.decode("ascii").strip().split(",")
-            if len(decoded_data) != 6:
+            if len(decoded_data) != 7:
                 continue
             sample = [int(p) for p in decoded_data]
         except (UnicodeDecodeError, ValueError):
             continue
-        for i in range(6):
+        for i in range(7):
             channels[i].append(sample[i])
     return []
 
+# 0, 1, 2 return 0 (represents left plot). 3, 4, 5 return 1 (right plot). 6 returns 0 (edge case for acc_mag)
+def axis_helper(i):
+    # handle the acc_mag case
+    if i == 6:
+        return 0
+    return i // 3 
 
-def grid_helper(i):
-    row = i % 3
-    col = i // 3 # floor division
-    return row, col
 
 # create 6 subplots with the same x axes
-fig, ax = plt.subplots(3, 2, sharex=True)
+fig, ax = plt.subplots(1, 2, sharex=True)
 
+labels = ["acc_x", "acc_y", "acc_z", "gyr_x", "gyr_y", "gyr_z", "acc_mag"]
 lines = []
-for i in range(6):
-    r, c = grid_helper(i)
-    lines.append(ax[r][c].plot(range(WINDOW_WIDTH), channels[i])[0])
+for i in range(7):
+    a = axis_helper(i)
+    lines.append(ax[a].plot(range(WINDOW_WIDTH), channels[i], label=labels[i])[0])
 
-labels = ["acc_x", "acc_y", "acc_z", "gyr_x", "gyr_y", "gyr_z"]
-for i in range(6):
-    r, c = grid_helper(i)
-    ax[r][c].set_ylabel(labels[i])
-
-
+ax[0].set_title("acceleration")
+ax[1].set_title("gyroscope")
+ax[0].legend(loc="upper right")
+ax[1].legend(loc="upper right")
 
 def update_plot(frame):
     update(frame)
-    for i in range(6):
-        r, c = grid_helper(i)
+    for i in range(7):
+        a = axis_helper(i)
         lines[i].set_ydata(channels[i])
-        ax[r][c].relim();
-        ax[r][c].autoscale_view(scalex=False)
+        ax[a].relim();
+        ax[a].autoscale_view(scalex=False)
     return lines
 
 

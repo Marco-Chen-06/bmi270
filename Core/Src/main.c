@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bmi270.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,8 +55,9 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-static void print_motion_data(bmi270_data_t data);
-static void print_motion_data_csv(bmi270_data_t data);
+//static void print_motion_data(bmi270_data_t data, long acc_mag);
+static void print_motion_data_csv(bmi270_data_t data, long acc_mag);
+static long calculate_acc_mag(bmi270_data_t data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -94,7 +96,7 @@ int main(void) {
 	MX_USART2_UART_Init();
 	MX_I2C1_Init();
 	/* USER CODE BEGIN 2 */
-	printf("-----starting new code execution-----\r\n");
+//	printf("-----starting new code execution-----\r\n");
 
 	if (bmi270_init(&hi2c1) == -1) {
 		printf("Error, bmi270 failed to initialize\r\n");
@@ -105,16 +107,18 @@ int main(void) {
 	bmi270_init_normal(&hi2c1);
 
 	bmi270_data_t data = {0};
+	long acc_mag = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		bmi270_get_motion_data(&hi2c1, &data);
-		print_motion_data_csv(data);
+		acc_mag = calculate_acc_mag(data);
+		print_motion_data_csv(data, acc_mag);
+
+		HAL_Delay(10);
 		/* USER CODE END WHILE */
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-		HAL_Delay(50);
 		/* USER CODE BEGIN 3 */
 	}
 	/* USER CODE END 3 */
@@ -289,13 +293,18 @@ int __io_putchar(int ch) {
 	return ch;
 }
 
-static void print_motion_data(bmi270_data_t data) {
-	printf("acc_x: %d acc_y: %d acc_z: %d, ", data.acc_x, data.acc_y, data.acc_z);
-	printf("gyr_x: %d gyr_y: %d gyr_z %d \r\n", data.gyr_x, data.gyr_y, data.gyr_z);
+//static void print_motion_data(bmi270_data_t data, long acc_mag) {
+//	printf("acc_x: %d acc_y: %d acc_z: %d, ", data.acc_x, data.acc_y, data.acc_z);
+//	printf("gyr_x: %d gyr_y: %d gyr_z %d \r\n", data.gyr_x, data.gyr_y, data.gyr_z);
+//	printf("acc_mag: %lu", acc_mag);
+//}
+
+static void print_motion_data_csv(bmi270_data_t data, long acc_mag) {
+	printf("%d,%d,%d,%d,%d,%d,%lu\r\n", data.acc_x, data.acc_y, data.acc_z, data.gyr_x, data.gyr_y, data.gyr_z, acc_mag);
 }
 
-static void print_motion_data_csv(bmi270_data_t data) {
-	printf("%d,%d,%d,%d,%d,%d\r\n", data.acc_x, data.acc_y, data.acc_z, data.gyr_x, data.gyr_y, data.gyr_z);
+static long calculate_acc_mag(bmi270_data_t data) {
+	return sqrt(pow((long)data.acc_x, 2) + pow((long)data.acc_y, 2) + pow((long)data.acc_z, 2));
 }
 /* USER CODE END 4 */
 
