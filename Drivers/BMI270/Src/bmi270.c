@@ -792,6 +792,20 @@ int bmi270_init_normal(I2C_HandleTypeDef *hi2c) {
 	return 0;
 }
 
+int bmi270_init_low_power(I2C_HandleTypeDef *hi2c) {
+	// enable acceleration data. Disable gyro temperature and auxillary.
+	bmi270_write_byte(hi2c, BMI270_REG_PWR_CTRL, 0x04);
+
+	// disable acc_filter_perf bit, set acc_bwp to 2 repititions, set acc_odr to 50 Hz
+	bmi270_write_byte(hi2c, BMI270_REG_ACC_CONF, 0x17);
+
+	// enable adc_power_save bit, leave fifo_self_wakeup enabled
+	bmi270_write_byte(hi2c, BMI270_REG_PWR_CONF, 0x03);
+
+	return 0;
+}
+
+
 // get motion data
 int bmi270_get_motion_data(I2C_HandleTypeDef *hi2c, bmi270_data_t *data) {
 	uint8_t buf[12];

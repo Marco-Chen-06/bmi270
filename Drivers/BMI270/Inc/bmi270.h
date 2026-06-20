@@ -21,6 +21,12 @@ int bmi270_init(I2C_HandleTypeDef *hi2c);
 // initialize bmi270 for normal mode
 int bmi270_init_normal(I2C_HandleTypeDef *hi2c);
 
+// initialize bmi270 for low pwoer mode, exactly as according to the datasheet
+int bmi270_init_low_power(I2C_HandleTypeDef *hi2c);
+
+// set the advanced power save mode
+int bmi270_power_save_enable(I2C_HandleTypeDef *hi2c);
+
 // get motion data
 int bmi270_get_motion_data(I2C_HandleTypeDef *hi2c, bmi270_data_t *data);
 
